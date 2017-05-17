@@ -1,0 +1,123 @@
+{% include '/header.html' %}
+<div class="login_container">
+  <h1 class="text-center"><strong><span class="glyphicon glyphicon-leaf text-success">agroFarm</span></strong></h1>
+    <div class="col-sm-8 col-sm-offset-2 text">
+      <h2>Login / Register</h2>
+		</div>
+  <div class="row">
+    <div class="col-sm-5">
+      <div class="form-box">
+	       <div class="form-top">
+	          <div class="form-top-left">
+	             <h3>Login</h3>
+             </div>
+             <div class="form-top-right">
+               <i class="glyphicon glyphicon-log-in"></i>
+             </div>
+           </div>
+           <div class="form-bottom">
+             <form role="form" class="login-form" name="login_form" id="login_form" data-toggle="validator">
+               <div class="form-group">
+                 <label class="sr-only control-label" for="login-form-username">Username</label>
+                 <input type="email" name="login-form-email" placeholder="E-mail" class="form-email form-control" id="login-form-email" data-error="Invalid Email!" required>
+                 <div class="help-block with-errors"></div>
+               </div>
+               <div class="form-group">
+                 <label class="sr-only control-label" for="login-form-password">Password</label>
+                 <input type="password" name="login-form-password" placeholder="Password" class="form-password form-control" data-minlength="6" id="login-form-password" required>
+                 <div class="help-block with-errors"></div>
+               </div>
+               <button type="submit" name = "login_button" id = "login_button" class="btn btn-primary custom_btn btn-lg btn-block">Login</button>
+             </form>
+           </div>
+         </div>
+       </div>
+       <div class="col-sm-1 middle-border"></div>
+       <div class="col-sm-1"></div>
+       <div class="col-sm-5">
+         <div class="form-box">
+           <div class="form-top">
+             <div class="form-top-left">
+               <h3>Register</h3>
+             </div>
+             <div class="form-top-right">
+               <i class="glyphicon glyphicon-edit"></i>
+             </div>
+           </div>
+           <div class="form-bottom">
+             <form role="form" name = "signup_form" id = "signup_form" class="registration-form" data-toggle="validator">
+               <div class="form-group has-feedback">
+                 <label class="sr-only control-label" for="signup-form-email-address">Email Address</label>
+                 <input type="email" name="signup-form-email-address" placeholder="Email Address" class="form-email-address form-control" data-error="Invalid Email!" id="signup-form-email-address" required>
+                 <div class="help-block with-errors"></div>
+               </div>
+               <div class="form-group">
+                 <label class="sr-only control-label" for="signup-form-password">Password</label>
+                 <input type="password" name="signup-form-password" placeholder="Password" data-minlength="6" class="form-password form-control" id="signup-form-password" required>
+                 <div class="help-block with-errors"></div>
+               </div>
+               <div class="form-group">
+                 <label class="sr-only control-label" for="signup-form-confirm-password">Confirm Password</label>
+                 <input type="password" name="signup-form-confirm-password" data-minlength="6" placeholder="Confirm Password" class="form-confirm-password form-control" data-match="#signup-form-password" data-match-error="Whoops, these don't match!" id="signup-form-confirm-password" required>
+                 <div class="help-block with-errors"></div>
+               </div>
+               <hr>
+               <div class="form-group">
+                 <label class="sr-only" for="signup-form-name">Your Name</label>
+                 <input type="text" name="signup-form-name" placeholder="Enter Your Name" class="form-name form-control" id="signup-form-name" required>
+                 <div class="help-block with-errors"></div>
+               </div>
+               <button type="submit" name = "register_button" id = "register_button" class="btn btn-primary custom_btn btn-lg btn-block">Register</button>
+             </form>
+
+           </div>
+           <!--<br /><br /><br /><br />-->
+         </div>
+       </div>
+     </div>
+   </div>
+   <script>
+   //SignIn AJAX Call Method
+   $(document).ready(function(){
+     $('#login_form').submit(function(e){
+       $.ajax({
+         data: JSON.stringify({"email": $('#login-form-email').val(), "password": $('#login-form-password').val()}),
+         type: 'POST',
+         url: '/signIn',
+         dataType: 'json',
+         contentType: 'applicaton/json',
+         success: function(result){
+           if(result['status']==0){
+             window.location.replace("{{ url_for('main.profile', _external=True) }}");
+           }
+           else{
+             alert(result['status_msg']);
+           }
+         }
+       });
+       e.preventDefault();
+     });
+   });
+   //SignUP AJAX Call Method
+   $(document).ready(function(){
+     $('#signup_form').submit(function(e){
+       $.ajax({
+         data: JSON.stringify({"email": $('#signup-form-email-address').val(), "password": $('#signup-form-password').val(), "name": $('#signup-form-name').val()}),
+         type: 'POST',
+         url: '/signUp',
+         dataType: 'json',
+         contentType: 'applicaton/json',
+         success: function(result){
+           if(result['status']==0){
+             window.location.replace("{{ url_for('main.profile', _external=True) }}");
+           }
+           else{
+             alert(result['status_msg']);
+           }
+         }
+       });
+       e.preventDefault();
+     });
+   });
+   </script>
+{%include '/footer.html'%}

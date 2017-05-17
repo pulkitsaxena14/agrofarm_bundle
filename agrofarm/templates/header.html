@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>agroFarm</title>
+
+    <!--jQuery-->
+    <script src="{{ url_for('static', filename = 'custom/js/jquery.js') }}"></script>
+
+    <!--Faviocon-->
+    <link rel="shortcut icon" href="{{ url_for('static', filename = 'images/favicon.ico') }}" type="image/x-icon">
+    <link rel="icon" href="{{ url_for('static', filename = 'images/favicon.ico') }}" type="image/x-icon">
+
+    <!-- Bootstrap -->
+    <!-- bootstrap js files -->
+    <!--<script src="{{ url_for('static', filename = 'bootstrap/js/bootstrap.js') }}"></script>-->
+    <script src="{{ url_for('static', filename = 'bootstrap/js/bootstrap.min.js') }}"></script>
+    <!--<script src="{{ url_for('static', filename = 'bootstrap/js/npm.js') }}"></script>-->
+
+    <!-- bootstrap css files -->
+    <link href="{{ url_for('static', filename = 'bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename = 'bootstrap/css/bootstrap.min.css.map') }}" rel="stylesheet">
+    <!--<link href="{{ url_for('static', filename = 'bootstrap/css/bootstrap-theme.css') }}" rel="stylesheet">-->
+    <link href="{{ url_for('static', filename = 'bootstrap/css/bootstrap-theme.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename = 'bootstrap/css/bootstrap-theme.min.css.map') }}" rel="stylesheet">
+    <!--<link href="{{ url_for('static', filename = 'bootstrap/css/bootstrap.css') }}" rel="stylesheet">-->
+    <!--Font Awesome-->
+    <!--FA css files-->
+    <!--<link href="{{ url_for('static', filename = 'fonts/css/font-awesome.css') }}" rel="stylesheet">-->
+    <link href="{{ url_for('static', filename = 'fonts/css/font-awesome.min.css') }}" rel="stylesheet">
+
+    <!-- custom files -->
+    <script src="{{ url_for('static', filename = 'custom/js/progress.js') }}"></script>
+    <script src="{{ url_for('static', filename = 'custom/js/validator.js') }}"></script>
+    <link href="{{ url_for('static', filename = 'custom/css/progress.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename = 'custom/css/custom.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename = 'custom/css/footer.css') }}" rel="stylesheet">
+
+  </head>
+  <body>
+    <div class="container">
+      <nav class="navbar navbar-fixed-top SiteHeader" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbarCollapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <div class="header_logo">
+                <a class="navbar-brand" href="/">
+                  <span class="glyphicon glyphicon-leaf text-success">agroFarm</span>
+                </a>
+              </div>
+            </div>
+            <div class="collapse navbar-collapse navbarCollapse">
+              <ul class="nav navbar-nav">
+                <form class="navbar-form navbar-left" role="search">
+                  <input class="form-control btn-outline-success mr-sm-2" placeholder="Search" type="text">
+                  <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+                </form>
+                <li class="active"><a href="/questions">Questions</a></li>
+                <li><a href="/help">Help</a></li>
+                <li><a href="/about">About</a></li>
+                {% if 'u_name' in session: %}
+                <li><a href="/profile">Profile</a></li>
+                <li><a href="/signOut">Sign Out</a></li>
+                {% else: %}
+                <li><a href="/account">Log In|Sign Up</a></li>
+                {% endif %}
+
+            </ul>
+          </div>
+        </div>
+    </nav>

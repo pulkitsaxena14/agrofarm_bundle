@@ -1,0 +1,15 @@
+{% include '/header.html' %}
+<div class="container-fluid">
+  <div class="row">
+    <h3>Help Center</h3>
+  </div>
+  <div class="row">
+    <legend>List of Topics</legend>
+    <ul>
+      <li><a href="{{url_for('main.ques_guide')}}">How do I ask a good question?</a></li>
+      <li><a href="{{url_for('main.ans_guide')}}">How do I write a good answer?</a></li>
+      <li><a href="{{url_for('main.vote_guide')}}">Votes</a></li>
+    </ul>
+  </div>
+</div>
+{% include '/footer.html'%}

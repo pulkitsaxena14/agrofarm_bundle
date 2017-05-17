@@ -1,0 +1,176 @@
+{% include '/header.html' %}
+<script>
+  var flag = 0;
+  {% for ans in all_answers %}
+  {% if ans.u_id == session['u_id'] or answer_accepted.u_id == session['u_id']: %}
+  flag = 1;
+  {% endif %}
+  {% endfor %}
+  if(flag==1){
+    $(document).ready(function() {
+      $("#answer_me").hide();
+    });
+  }
+  else{
+    $(document).ready(function() {
+      $("#answer_me").show();
+    });
+  }
+</script>
+<div class = "container-fluid">
+  <div class="row">
+    <div class="col-sm-12">
+      {% block question %}
+      <h4>{{question.title}} </h4>
+      <hr />
+          <table>
+            <tbody>
+              <tr>
+                <td class="vote-cell">
+                  <a class="vote" title="This question is useful and clear" id="vote_up" data-vote-up="UP" data-type-up="QUESTION" data-id-up="{{question.id}}"><span class="glyphicon glyphicon-menu-up"></span></a>
+                  <span class="view-count">{{question.upvotes - question.downvotes}}</span>
+                  <a class="vote" title="This question is unclear or not useful" id="vote_down" data-vote-down="DOWN" data-type-down="QUESTION" data-id-down="{{question.id}}"><span class="glyphicon glyphicon-menu-down"></span></a>
+                </td>
+                <td class="data-cell">
+                  {{question.details}}
+                  <table>
+                    <tbody>
+                      <tr>
+                        <td class="asked-panel">
+                          <span class="asked-label">Asked:</span>
+                          <div>{{question.asked}}</div>
+                          <div>{{question.name}}</div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          {% endblock %}
+          <hr />
+
+          <legend>Answers: </legend>
+          <div id="answer_me" name="answer_me">
+            <div class="col-sm-12">
+      	       <h3><span class="glyphicon glyphicon glyphicon-question-sign"></span>Answer</h3>
+               <form role="form" class="answer-form" name="answer_form" id="answer_form" data-toggle="validator">
+                 <div class="form-group">
+                   <label class="control-label" for="answer-form-text">Answer</label>
+                   <textarea form="answer_form" rows="5" name="answer-form-text" placeholder="Answer" class="form-control" id="answer-form-text" required></textarea>
+                   <div class="help-block with-errors"></div>
+                 </div>
+                 <button type="submit" name = "answer_button" id = "answer_button" class="btn btn-primary custom_btn btn-lg btn-block">Answer</button>
+               </form>
+               <hr />
+             </div>
+           </div>
+
+          {% block ACCEPTED_ANSWER %}
+          {% if answer_accepted is not none: %}
+              <table>
+                <tbody>
+                  <tr>
+                    <td class="vote-cell">
+                      <a class="vote" title="This answer is useful and clear" id="vote_up" data-vote-up="UP" data-type-up="ANSWER" data-id-up="{{answer_accepted.id}}"><span class="glyphicon glyphicon-menu-up"></span></a>
+                      <span class="view-count">{{answer_accepted.upvotes - answer_accepted.downvotes}}</span>
+                      <a class="vote" title="This question is unclear or not useful" id="vote_down" data-vote-down="DOWN" data-type-down="ANSWER" data-id-down="{{answer_accepted.id}}"><span class="glyphicon glyphicon-menu-down"></span></a>
+                    </td>
+                    <td class="data-cell">
+                      {{answer_accepted.ans}}
+                      <table>
+                        <tbody>
+                          <tr>
+                            <td class="asked-panel">
+                              <span class="asked-label">Answered:</span>
+                              <div>{{answer_accepted.answered}}</div>
+                              <div>{{answer_accepted.id}}</div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <hr />
+              {% endif%}
+              {% endblock %}
+              {% block ALL_ANSWERS %}
+              {% for data in all_answers %}
+              <table>
+                <tbody>
+                  <tr>
+                    <td class="vote-cell">
+                      <a class="vote" title="This answer is useful and clear" id="vote_up" data-vote-up="UP" data-type-up="ANSWER" data-id-up="{{data.id}}"><span class="glyphicon glyphicon-menu-up"></span></a>
+                      <span class="view-count">{{data.upvotes - data.downvotes}}</span>
+                      <a class="vote" title="This question is unclear or not useful" id="vote_down" data-vote-down="DOWN" data-type-down="ANSWER" data-id-down="{{data.id}}"><span class="glyphicon glyphicon-menu-down"></span></a>
+                    </td>
+                    <td class="data-cell">
+                      {{data.ans}}
+                      <table>
+                        <tbody>
+                          <tr>
+                            <td class="asked-panel">
+                              <span class="asked-label">Answered:</span>
+                              <div>{{data.answered}}</div>
+                              <div>{{data.name}}</div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <hr />
+              {% endfor %}
+              {% endblock %}
+        </div>
+<script>
+$(document).ready(function(){
+  $('[id=vote_up]').click(function(e){
+    $.ajax({
+      data: JSON.stringify({"vote": $(this).attr("data-vote-up"), "id": $(this).attr("data-id-up"), "type": $(this).attr("data-type-up")}),
+      type: 'POST',
+      url: '{{ url_for("main.vote") }}',
+      dataType: 'json',
+      contentType: 'applicaton/json',
+      success: function(result){
+        if(result['status']==0){
+          window.location.replace("{{url_for('main.view_question', q_id=question.id)}}");
+        }
+        else{
+          alert(result['status_msg']);
+        }
+      }
+    });
+    e.preventDefault();
+  });
+});
+</script>
+<script>
+$(document).ready(function(){
+  $('[id=vote_down]').click(function(e){
+    $.ajax({
+      data: JSON.stringify({"vote": $(this).attr("data-vote-down"), "id": $(this).attr("data-id-down"), "type": $(this).attr("data-type-down")}),
+      type: 'POST',
+      url: '{{ url_for("main.vote") }}',
+      dataType: 'json',
+      contentType: 'applicaton/json',
+      success: function(result){
+        if(result['status']==0){
+          window.location.replace("{{url_for('main.view_question', q_id=question.id)}}");
+        }
+        else{
+          alert(result['status_msg']);
+        }
+      }
+    });
+    e.preventDefault();
+  });
+});
+</script>
+
+{%include '/footer.html'%}

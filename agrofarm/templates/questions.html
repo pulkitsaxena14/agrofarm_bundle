@@ -1,0 +1,51 @@
+{% include '/header.html' %}
+{% if 'u_name' not in session: %}
+  <legend>Sorry!</legend>
+  <p>Sorry, but to ask a question, you need to <a href = "/account">Login</a> first.</p>
+{% else: %}
+<div class="container-fluid">
+  <h1 class="text-center"><strong><span class="glyphicon glyphicon-leaf text-success">agroFarm</span></strong></h1>
+  <div class="row">
+    <div class="col-sm-12">
+	    <h3><span class="glyphicon glyphicon glyphicon-question-sign"></span>Ask a Question</h3>
+      <form role="form" class="question-form" name="question_form" id="question_form" data-toggle="validator">
+        <div class="form-group">
+          <label class="control-label" for="question-form-title">Title</label>
+          <textarea form="question_form" rows="1" name="question-form-title" placeholder="Title" class="form-control" id="question-form-title" maxlength = "500" size = "50" required></textarea>
+          <div class="help-block with-errors"></div>
+        </div>
+        <div class="form-group">
+          <label class="control-label" for="question-form-text">Details</label>
+          <textarea form="question_form" rows="5" name="question-form-text" placeholder="Details" class="form-control" id="question-form-text" required></textarea>
+          <div class="help-block with-errors"></div>
+        </div>
+        <button type="submit" name = "question_button" id = "question_button" class="btn btn-primary custom_btn btn-lg btn-block">Ask</button>
+      </form>
+    </div>
+  </div>
+</div>
+   <script>
+   //SignIn AJAX Call Method
+   $(document).ready(function(){
+     $('#question_form').submit(function(e){
+       $.ajax({
+         data: JSON.stringify({"title": $('#question-form-title').val(), "text": $('#question-form-text').val()}),
+         type: 'POST',
+         url: '{{url_for("main.submit_question")}}',
+         dataType: 'json',
+         contentType: 'applicaton/json',
+         success: function(result){
+           if(result['status']==0){
+             window.location.replace("{{ url_for('main.profile', _external=True) }}");
+           }
+           else{
+             alert(result['status_msg']);
+           }
+         }
+       });
+       e.preventDefault();
+     });
+   });
+   </script>
+{% endif %}
+{%include '/footer.html'%}

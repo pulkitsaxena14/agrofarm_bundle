@@ -1,0 +1,29 @@
+{% include '/header.html' %}
+  <h1>Welcome Home!</h1>
+  <p>Read what's new!</p>
+  <div class = "container-fluid">
+    <div class="row">
+      <div class="col-sm-12">
+        {% block container %}
+            <table class="table table-responsive">
+              <tbody>
+        {% for data in result %}
+                <tr>
+                  <td class="count-cell">
+                    <div class="mini-count">{{data.upvotes - data.downvotes}}<br />Votes</div>
+                  </td>
+                  <td class="count-cell">
+                    <div class="mini-count">{{data.answer_count}}<br />Answers</div>
+                  </td>
+                  <td>
+                    <a href="{{url_for('main.view_question', q_id=data.id)}}">{{data.title}}</a>
+                  </td>
+                </tr>
+        {% endfor %}
+              </tbody>
+            </table>
+        {% endblock %}
+      </div>
+    </div>
+  </div>
+{%include '/footer.html'%}

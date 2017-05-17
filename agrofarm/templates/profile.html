@@ -1,0 +1,46 @@
+{% include '/header.html' %}
+<h1>Welcome {{ session['u_name'] }}</h1>
+User Id: {{ session['u_id'] }}<br />Email: {{ session['u_email'] }}
+<hr />
+
+<div class = "container-fluid">
+  <div class="row">
+    <div class="col-sm-6">
+      <h2> Questions </h2>
+          <table class="table table-responsive">
+            <tbody>
+      {% for data in question %}
+              <tr>
+                <td class="count-cell">
+                  <div class="mini-count">{{data.upvotes - data.downvotes}}</div>
+                </td>
+                <td>
+                  <a href="{{url_for('main.view_question', q_id=data.id)}}">{{data.title}}</a>
+                </td>
+              </tr>
+      {% endfor %}
+            </tbody>
+          </table>
+    </div>
+    <!--<div class="col-sm-2"></div>-->
+    <div class="col-sm-6">
+      <h2> Answers </h2>
+          <table class="table table-responsive">
+            <tbody>
+      {% for data in answer %}
+              <tr>
+                <td class="count-cell">
+                  <div class="mini-count">{{data.upvotes - data.downvotes}}</div>
+                </td>
+                <td>
+                  <a href="{{url_for('main.view_question', q_id=data.q_id)}}">{{data.ans}}</a>
+                </td>
+              </tr>
+      {% endfor %}
+            </tbody>
+          </table>
+    </div>
+  </div>
+</div>
+
+{%include '/footer.html'%}
