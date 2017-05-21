@@ -25,20 +25,20 @@ User Id: {{ session['u_id'] }}<br />Email: {{ session['u_email'] }}
     <!--<div class="col-sm-2"></div>-->
     <div class="col-sm-6">
       <h2> Answers </h2>
-          <table class="table table-responsive">
-            <tbody>
-      {% for data in answer %}
-              <tr>
-                <td class="count-cell">
-                  <div class="mini-count">{{data.upvotes - data.downvotes}}</div>
-                </td>
-                <td>
-                  <a href="{{url_for('main.view_question', q_id=data.q_id)}}">{{data.ans}}</a>
-                </td>
-              </tr>
-      {% endfor %}
-            </tbody>
-          </table>
+      <table class="table table-responsive">
+        <tbody>
+          {% for data in answer %}
+          <tr>
+            <td class="count-cell">
+              <div class="mini-count">{{data[0].upvotes - data[0].downvotes}}</div>
+            </td>
+            <td>
+              <a href="{{url_for('main.view_question', q_id=data[0].q_id)}}">{{data[1]}}</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
 </div>

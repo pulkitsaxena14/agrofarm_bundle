@@ -10,10 +10,7 @@ main = Blueprint('main', __name__, template_folder='templates', static_folder='/
 
 @main.route('/')
 def index():
-    view_all = db.session.execute("SELECT q.*, (SELECT count(a.q_id) as answer_count from answers a where a.q_id = q.id) from questions q order by(q.asked) desc;")
-    result = []
-    for row in view_all:
-        result.append(dict(zip(row.keys(),row)))
+    result = db.session.query(Questions, db.func.count(Answers.q_id)).group_by(Questions.id).order_by(Questions.asked.desc()).outerjoin(Answers).all()
     return render_template('home.html', result=result)
 
 @main.route('account')
@@ -75,7 +72,7 @@ def add_new_user():
     password = request_data['password']
     hash_object = hashlib.md5(password.encode())
     hashed_password = hash_object.hexdigest()
-    current_app.logger.info('Adding a new User %s: %s.', (name, email, hashed_password))
+    current_app.logger.info('Adding a new User {0}: {1}: {2}.'.format(name, email, hashed_password))
     add_user = Users(name, email, hashed_password)
 
     try:
@@ -97,8 +94,8 @@ def profile():
     if 'u_name' in session:
         u_id = session['u_id']
         question = Questions.query.filter_by(u_id=u_id).all()
-        answer = Answers.query.filter_by(u_id=u_id).all()
-        return render_template('profile.html', question=question, answer=answer)
+        result = db.session.query(Answers, Questions.title).filter_by(u_id=u_id).join(Questions)
+        return render_template('profile.html', question=question, answer=result)
     else:
         return redirect(url_for('main.account'))
 
@@ -117,7 +114,7 @@ def submit_question():
     title = request_data['title']
     text = request_data['text']
     u_id = session['u_id']
-    current_app.logger.info('Adding a new Question %s: %s.', (u_id, title, text))
+    current_app.logger.info('Adding a new Question: U_Id: {0}, title:{1}, text:{2}'.format(u_id, title, text))
     add_question = Questions(title, text, u_id)
 
     try:
@@ -133,18 +130,13 @@ def submit_question():
 
 @main.route('view_question/<int:q_id>')
 def view_question(q_id):
-    result_ques = db.session.execute("SELECT Q.*, (SELECT U.NAME FROM USERS U WHERE U.ID = Q.U_ID LIMIT 1) FROM QUESTIONS Q WHERE Q.ID = :val LIMIT 1", {'val':q_id})
-    question = []
-    for row in result_ques:
-        question = dict(zip(row.keys(), row))
+    question = db.session.query(Questions, Users.name).filter_by(id=q_id).join(Users).first()
+    answer_accepted = db.session.query(Answers, Users.name).filter_by(q_id=q_id,accepted='YES').join(Users).first()
+    all_answers = db.session.query(Answers, Users.name).filter_by(q_id=q_id,accepted='NO').order_by(Answers.upvotes, Answers.answered).join(Users).all()
+    for data in all_answers:
+        print data
 
-    answer_accepted = Answers.query.filter_by(q_id=q_id, accepted="YES").first()
-    result_ans = db.session.execute("SELECT A.*, (SELECT U.NAME FROM USERS U WHERE U.ID=A.U_ID LIMIT 1) FROM ANSWERS A WHERE A.q_id = :val AND A.accepted='NO' ORDER BY(A.UPVOTES, A.ANSWERED) DESC", {'val':q_id})
-    all_answers=[]
-    for row in result_ans:
-        all_answers.append(dict(zip(row.keys(), row)))
-
-    return render_template('view_question.html', question=question, answer_accepted=answer_accepted, all_answers=all_answers)
+    return render_template('view_question.html', question=question, answer_accepted=answer_accepted, all_answers=all_answers) #
 
 
 @main.route('submit_answer/<int:q_id>', methods=["POST"])
@@ -158,7 +150,12 @@ def submit_answer(q_id):
     request_data = request.get_json(force=True)
     ans = request_data['ans']
     u_id = session['u_id']
-    current_app.logger.info('Adding a new Answer to question (%s: %s: %s).', (u_id, q_id, ans))
+    user_answered = Answers.query.filter_by(u_id=u_id, q_id=q_id).first()
+    if user_answered is not None:
+        response = {"status": 1, "status_msg": "You have already answered this question!"}
+        return jsonify(response), 200
+    current_app.logger.info('Adding a new Answer to question ({0}: {1}: {2}).'.format(u_id, q_id, ans))
+    print("\n\nAdding...\n\n")
     add_answer = Answers(ans, q_id, u_id)
 
     try:
@@ -200,9 +197,14 @@ def vote():
     entity_type = request_data['type']
     u_id = session['u_id']
     if entity_type == "QUESTION":
+        testing_question = Questions.query.filter_by(u_id=u_id, id=entity_id);
+        if testing_question:
+            response = {"status": 1, "status_msg": "You cannot vote your own content!"}
+            return jsonify(response), 200
+
         result = q_votes.query.filter_by(u_id=u_id,q_id=entity_id).first()
         if result is None:
-            current_app.logger.info('Voting Entity (Vote_Type:%s, Entity_Type: %s, Entity_Id: %s, User_Id: %s).', (vote, entity_type, entity_id, u_id))
+            current_app.logger.info('Voting Entity (Vote_Type:{0}, Entity_Type: {1}, Entity_Id: {2}, User_Id: {3}).'.format(vote, entity_type, entity_id, u_id))
             add_vote = q_votes(u_id, entity_id, vote)
             try:
                 db.session.add(add_vote)
@@ -220,7 +222,7 @@ def vote():
                 response = {"status": 1, "status_msg": "Error:Vote Not Added!"}
                 return jsonify(response), 500
         else:
-            current_app.logger.info('Removing Vote Entity (Vote_Type:%s, Entity_Type: %s, Entity_Id: %s, User_Id: %s).', (vote, entity_type, entity_id, u_id))
+            current_app.logger.info('Removing Vote Entity (Vote_Type:{0}, Entity_Type: {1}, Entity_Id: {2}, User_Id: {3}).'.format(vote, entity_type, entity_id, u_id))
             update_questions = Questions.query.filter_by(id=entity_id).first()
             if result.vote != vote:
                 try:
@@ -256,10 +258,15 @@ def vote():
                     return jsonify(response), 500
 
     else:
+        testing_answer = Answers.query.filter_by(u_id=u_id, id=entity_id).first();
+        if testing_answer is not None:
+            print testing_answer
+            response = {"status": 1, "status_msg": "You cannot vote your own content!"}
+            return jsonify(response), 200
         result = a_votes.query.filter_by(u_id=u_id,a_id=entity_id).first()
 
         if result is None:
-            current_app.logger.info('Voting Entity (Vote_Type:%s, Entity_Type: %s, Entity_Id: %s, User_Id: %s).', (vote, entity_type, entity_id, u_id))
+            current_app.logger.info('Voting Entity (Vote_Type:{0}, Entity_Type: {1}, Entity_Id: {2}, User_Id: {3}).'.format(vote, entity_type, entity_id, u_id))
             add_vote = a_votes(u_id, entity_id, vote)
 
             try:
@@ -278,7 +285,7 @@ def vote():
                 response = {"status": 1, "status_msg": "Error:Vote Not Added!"}
                 return jsonify(response), 500
         else:
-            current_app.logger.info('Removing Vote Entity (Vote_Type:%s, Entity_Type: %s, Entity_Id: %s, User_Id: %s).', (vote, entity_type, entity_id, u_id))
+            current_app.logger.info('Removing Vote Entity (Vote_Type:{0}, Entity_Type: {1}, Entity_Id: {2}, User_Id: {3}).'.format(vote, entity_type, entity_id, u_id))
             update_answers = Answers.query.filter_by(id=entity_id).first()
             if result.vote != vote:
                 try:
@@ -312,3 +319,40 @@ def vote():
                     current_app.logger.error(e)
                     response = {"status": 1, "status_msg": "Error:Vote Not Deleted!"}
                     return jsonify(response), 500
+
+@main.route('accept', methods=["POST"])
+def accept():
+    if 'u_id' not in session:
+        response = {"status": 1, "status_msg": "You need to login first to Accept!"}
+        return jsonify(response), 200
+
+    request_data = request.get_json(force=True)
+    a_id = request_data['a_id']
+    q_id = request_data['q_id']
+
+    check_question = Questions.query.filter_by(id=q_id).first()
+
+    if check_question.u_id != session['u_id']:
+        response = {"status": 1, "status_msg": "You can only accept Answers to your Questions!"}
+        return jsonify(response), 200
+
+    check_accepted = Answers.query.filter_by(id=a_id).first()
+
+    try:
+        if check_accepted.accepted == "YES":
+            current_app.logger.info('Removing Accepted (Answer_Id: {0}).'.format(a_id))
+            check_accepted.accepted = "NO"
+
+        else:
+            current_app.logger.info('Adding Accepted (Answer_Id: {0}).'.format(a_id))
+            check_accepted.accepted = "YES"
+
+        db.session.commit()
+        response = {"status": 0, "status_msg": "Success!"}
+        return jsonify(response), 201
+
+    except exc.SQLAlchemyError as e:
+        flash('Cannot change Accept status.')
+        current_app.logger.error(e)
+        response = {"status": 1, "status_msg": "Error:Status not changed!"}
+        return jsonify(response), 500

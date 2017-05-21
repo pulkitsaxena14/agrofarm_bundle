@@ -10,13 +10,13 @@
         {% for data in result %}
                 <tr>
                   <td class="count-cell">
-                    <div class="mini-count">{{data.upvotes - data.downvotes}}<br />Votes</div>
+                    <div class="mini-count">{{data[0].upvotes - data[0].downvotes}}{#{data.upvotes - data.downvotes}#}<br />Votes</div>
                   </td>
                   <td class="count-cell">
-                    <div class="mini-count">{{data.answer_count}}<br />Answers</div>
+                    <div class="mini-count">{{data[1]}}{#{data.answer_count}#}<br />Answers</div>
                   </td>
                   <td>
-                    <a href="{{url_for('main.view_question', q_id=data.id)}}">{{data.title}}</a>
+                    <a href="{{url_for('main.view_question', q_id=data[0].id)}}">{{data[0].title}}{#{data.title}#}</a>
                   </td>
                 </tr>
         {% endfor %}

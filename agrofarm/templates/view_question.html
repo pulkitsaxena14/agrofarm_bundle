@@ -1,8 +1,13 @@
 {% include '/header.html' %}
 <script>
   var flag = 0;
-  {% for ans in all_answers %}
-  {% if ans.u_id == session['u_id'] or answer_accepted.u_id == session['u_id']: %}
+  {% if answer_accepted is not none: %}
+  {% if answer_accepted[0].u_id == session['u_id']: %}
+  flag = 1;
+  {% endif %}
+  {% endif %}
+  {% for data in all_answers %}
+  {% if data[0].u_id == session['u_id']: %}
   flag = 1;
   {% endif %}
   {% endfor %}
@@ -17,29 +22,39 @@
     });
   }
 </script>
+<script>
+{% if 'u_id' not in session or question[0].u_id != session['u_id'] or answer_accepted is not none: %}
+  $(document).ready(function() {
+    $("[id=accept]").hide();
+  });
+{% endif %}
+</script>
 <div class = "container-fluid">
   <div class="row">
     <div class="col-sm-12">
       {% block question %}
-      <h4>{{question.title}} </h4>
+      <h4>{{question[0].title}} </h4>
       <hr />
           <table>
             <tbody>
               <tr>
                 <td class="vote-cell">
-                  <a class="vote" title="This question is useful and clear" id="vote_up" data-vote-up="UP" data-type-up="QUESTION" data-id-up="{{question.id}}"><span class="glyphicon glyphicon-menu-up"></span></a>
-                  <span class="view-count">{{question.upvotes - question.downvotes}}</span>
-                  <a class="vote" title="This question is unclear or not useful" id="vote_down" data-vote-down="DOWN" data-type-down="QUESTION" data-id-down="{{question.id}}"><span class="glyphicon glyphicon-menu-down"></span></a>
+                  <a class="vote" title="This question is useful and clear" id="vote_up" data-vote-up="UP" data-type-up="QUESTION" data-id-up="{{question[0].id}}"><span class="glyphicon glyphicon-menu-up"></span></a>
+                  <span class="view-count">{{question[0].upvotes - question[0].downvotes}}</span>
+                  <a class="vote" title="This question is unclear or not useful" id="vote_down" data-vote-down="DOWN" data-type-down="QUESTION" data-id-down="{{question[0].id}}"><span class="glyphicon glyphicon-menu-down"></span></a>
                 </td>
                 <td class="data-cell">
-                  {{question.details}}
+                  {#{question[0].details}#}
+                  {% for line in question[0].details.splitlines() %}
+                  {{line}}<br>
+                  {% endfor %}
                   <table>
                     <tbody>
                       <tr>
                         <td class="asked-panel">
                           <span class="asked-label">Asked:</span>
-                          <div>{{question.asked}}</div>
-                          <div>{{question.name}}</div>
+                          <div><script>document.write(moment("{{question[0].asked}}").format('lll'))</script></div>
+                          <div>{{question[1]}}</div>
                         </td>
                       </tr>
                     </tbody>
@@ -73,19 +88,23 @@
                 <tbody>
                   <tr>
                     <td class="vote-cell">
-                      <a class="vote" title="This answer is useful and clear" id="vote_up" data-vote-up="UP" data-type-up="ANSWER" data-id-up="{{answer_accepted.id}}"><span class="glyphicon glyphicon-menu-up"></span></a>
-                      <span class="view-count">{{answer_accepted.upvotes - answer_accepted.downvotes}}</span>
-                      <a class="vote" title="This question is unclear or not useful" id="vote_down" data-vote-down="DOWN" data-type-down="ANSWER" data-id-down="{{answer_accepted.id}}"><span class="glyphicon glyphicon-menu-down"></span></a>
+                      <a class="vote" title="This answer is useful and clear" id="vote_up" data-vote-up="UP" data-type-up="ANSWER" data-id-up="{{answer_accepted[0].id}}"><span class="glyphicon glyphicon-menu-up"></span></a>
+                      <span class="view-count">{{answer_accepted[0].upvotes - answer_accepted[0].downvotes}}</span>
+                      <a class="vote" title="This question is unclear or not useful" id="vote_down" data-vote-down="DOWN" data-type-down="ANSWER" data-id-down="{{answer_accepted[0].id}}"><span class="glyphicon glyphicon-menu-down"></span></a>
+                      <a class="vote accepted" title="This answer is the most useful one" id="accepted" data-id = "{{ answer_accepted[0].id }}"><span class="glyphicon glyphicon-ok"></span></a>
                     </td>
                     <td class="data-cell">
-                      {{answer_accepted.ans}}
+                      {{answer_accepted[0].ans}}
+                      {% for line in answer_accepted[0].ans.splitlines() %}
+                      {{line}}<br>
+                      {% endfor %}
                       <table>
                         <tbody>
                           <tr>
                             <td class="asked-panel">
                               <span class="asked-label">Answered:</span>
-                              <div>{{answer_accepted.answered}}</div>
-                              <div>{{answer_accepted.id}}</div>
+                              <div><script>document.write(moment("{{answer_accepted[0].answered}}").format('lll'))</script></div>
+                              <div>{{answer_accepted[1]}}</div>
                             </td>
                           </tr>
                         </tbody>
@@ -103,19 +122,23 @@
                 <tbody>
                   <tr>
                     <td class="vote-cell">
-                      <a class="vote" title="This answer is useful and clear" id="vote_up" data-vote-up="UP" data-type-up="ANSWER" data-id-up="{{data.id}}"><span class="glyphicon glyphicon-menu-up"></span></a>
-                      <span class="view-count">{{data.upvotes - data.downvotes}}</span>
-                      <a class="vote" title="This question is unclear or not useful" id="vote_down" data-vote-down="DOWN" data-type-down="ANSWER" data-id-down="{{data.id}}"><span class="glyphicon glyphicon-menu-down"></span></a>
+                      <a class="vote" title="This answer is useful and clear" id="vote_up" data-vote-up="UP" data-type-up="ANSWER" data-id-up="{{data[0].id}}"><span class="glyphicon glyphicon-menu-up"></span></a>
+                      <span class="view-count">{{data[0].upvotes - data[0].downvotes}}</span>
+                      <a class="vote" title="This question is unclear or not useful" id="vote_down" data-vote-down="DOWN" data-type-down="ANSWER" data-id-down="{{data[0].id}}"><span class="glyphicon glyphicon-menu-down"></span></a>
+                      <a class="vote accept" title="This answer is the most useful one" id="accept" data-id = "{{ data[0].id }}"><span class="glyphicon glyphicon-ok"></span></a>
                     </td>
                     <td class="data-cell">
-                      {{data.ans}}
+                      {#{data[0].ans}#}
+                      {% for line in data[0].ans.splitlines() %}
+                      {{line}}<br>
+                      {% endfor %}
                       <table>
                         <tbody>
                           <tr>
                             <td class="asked-panel">
                               <span class="asked-label">Answered:</span>
-                              <div>{{data.answered}}</div>
-                              <div>{{data.name}}</div>
+                              <div><script>document.write(moment("{{data[0].answered}}").format('lll'))</script></div>
+                              <div>{{data[1]}}</div>
                             </td>
                           </tr>
                         </tbody>
@@ -139,7 +162,7 @@ $(document).ready(function(){
       contentType: 'applicaton/json',
       success: function(result){
         if(result['status']==0){
-          window.location.replace("{{url_for('main.view_question', q_id=question.id)}}");
+          window.location.replace("{{url_for('main.view_question', q_id=question[0].id)}}");
         }
         else{
           alert(result['status_msg']);
@@ -161,7 +184,7 @@ $(document).ready(function(){
       contentType: 'applicaton/json',
       success: function(result){
         if(result['status']==0){
-          window.location.replace("{{url_for('main.view_question', q_id=question.id)}}");
+          window.location.replace("{{url_for('main.view_question', q_id=question[0].id)}}");
         }
         else{
           alert(result['status_msg']);
@@ -172,5 +195,70 @@ $(document).ready(function(){
   });
 });
 </script>
-
+<script>
+$(document).ready(function(){
+  $('#answer_form').submit(function(e){
+    $.ajax({
+      data: JSON.stringify({"ans": $('#answer-form-text').val()}),
+      type: 'POST',
+      url: '{{ url_for("main.submit_answer", q_id=question[0].id) }}',
+      dataType: 'json',
+      contentType: 'applicaton/json',
+      success: function(result){
+        if(result['status']==0){
+          window.location.replace("{{ url_for('main.view_question', q_id=question[0].id, _external=True) }}");
+        }
+        else{
+          alert(result['status_msg']);
+        }
+      }
+    });
+    e.preventDefault();
+  });
+});
+</script>
+<script>
+$(document).ready(function(){
+  $('[id=accept]').click(function(e){
+    $.ajax({
+      data: JSON.stringify({"a_id": $(this).attr("data-id"), "q_id": "{{ question[0].id }}"}),
+      type: 'POST',
+      url: '{{ url_for("main.accept") }}',
+      dataType: 'json',
+      contentType: 'applicaton/json',
+      success: function(result){
+        if(result['status']==0){
+          window.location.replace("{{url_for('main.view_question', q_id=question[0].id)}}");
+        }
+        else{
+          alert(result['status_msg']);
+        }
+      }
+    });
+    e.preventDefault();
+  });
+});
+</script>
+<script>
+$(document).ready(function(){
+  $('[id=accepted]').click(function(e){
+    $.ajax({
+      data: JSON.stringify({"a_id": $(this).attr("data-id"), "q_id": "{{ question[0].id }}"}),
+      type: 'POST',
+      url: '{{ url_for("main.accept") }}',
+      dataType: 'json',
+      contentType: 'applicaton/json',
+      success: function(result){
+        if(result['status']==0){
+          window.location.replace("{{url_for('main.view_question', q_id=question[0].id)}}");
+        }
+        else{
+          alert(result['status_msg']);
+        }
+      }
+    });
+    e.preventDefault();
+  });
+});
+</script>
 {%include '/footer.html'%}

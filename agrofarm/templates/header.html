@@ -34,6 +34,7 @@
 
     <!-- custom files -->
     <script src="{{ url_for('static', filename = 'custom/js/progress.js') }}"></script>
+    <script src="{{ url_for('static', filename = 'custom/js/moment.js') }}"></script>
     <script src="{{ url_for('static', filename = 'custom/js/validator.js') }}"></script>
     <link href="{{ url_for('static', filename = 'custom/css/progress.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename = 'custom/css/custom.css') }}" rel="stylesheet">
@@ -62,7 +63,7 @@
                   <input class="form-control btn-outline-success mr-sm-2" placeholder="Search" type="text">
                   <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
                 </form>
-                <li class="active"><a href="/questions">Questions</a></li>
+                <li class="active"><a href="/questions">Ask-a-Question</a></li>
                 <li><a href="/help">Help</a></li>
                 <li><a href="/about">About</a></li>
                 {% if 'u_name' in session: %}

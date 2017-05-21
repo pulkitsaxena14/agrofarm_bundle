@@ -1,0 +1,22 @@
+{% include '/header.html' %}
+{% block container %}
+  <div class="top-pad">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>id</th>
+          <th>title</th>
+        </tr>
+      </thead>
+      <tbody>
+{% for data in testers %}
+        <tr>
+          <td>{{data.id}}</td>
+          <td>{{data.title}}</td>
+        </tr>
+{% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
+{% include '/footer.html' %}

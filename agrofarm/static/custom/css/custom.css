@@ -207,6 +207,9 @@ a {
 	color: black;
 }
 .vote-cell{
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 	vertical-align: top;
 }
 .vote-cell span{
@@ -247,6 +250,9 @@ a {
 .vote span {
 	text-align: center;
 	color: #5cb85c;
+}
+.accept span{
+	color: #D3D3D3;
 }
 
 .data-cell{
