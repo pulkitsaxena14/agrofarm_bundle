@@ -59,8 +59,8 @@
             </div>
             <div class="collapse navbar-collapse navbarCollapse">
               <ul class="nav navbar-nav">
-                <form class="navbar-form navbar-left" role="search">
-                  <input class="form-control btn-outline-success mr-sm-2" placeholder="Search" type="text">
+                <form class="navbar-form navbar-left" role="search" action="/search" method="POST">
+                  <input class="form-control btn-outline-success mr-sm-2" id="search" name="search" placeholder="Search" type="text" pattern=".{3,}" required title="3 characters minimum">
                   <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
                 </form>
                 <li class="active"><a href="/questions">Ask-a-Question</a></li>

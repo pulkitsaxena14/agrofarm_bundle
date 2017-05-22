@@ -33,7 +33,7 @@
          type: 'POST',
          url: '{{url_for("main.submit_question")}}',
          dataType: 'json',
-         contentType: 'applicaton/json',
+         contentType: 'applicaton/json; charset:utf-8',
          success: function(result){
            if(result['status']==0){
              window.location.replace("{{ url_for('main.profile', _external=True) }}");

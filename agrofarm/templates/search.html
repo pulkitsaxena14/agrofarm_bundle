@@ -1,0 +1,51 @@
+{% include '/header.html' %}
+<script>
+{% if questions is none and answers is none:%}
+document.write("<div class=\"row\"><legend>Your search for \"{{query}}\" returned nothing.</legend></div><h4><a href=\"/questions\"><div class=\"col-sm-2\"><button class=\"btn btn-primary btn-sm btn-block\">Ask a question maybe?</button></a></h4></div>");
+$(document).ready(function() {
+  $("#search_res").hide();
+});
+{% endif %}
+</script>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-sm-12">
+      <legend name="search_res" id="search_res">Your search for "{{query}}" returned the following results: </legend>
+      {% if questions is not none: %}
+      <h4>Questions:</h4>
+      <table class="table table-responsive">
+        <tbody>
+          {% for data in questions['hits']['hits']: %}
+          <tr>
+            <td class="count-cell">
+              <div class="mini-count">{{data['_source']['upvotes'] - data['_source']['downvotes']}}<br />Votes</div>
+            </td>
+            <td>
+              <a href="{{url_for('main.view_question', q_id=data['_source']['id'])}}">{{data['_source']['title']}}</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+      {% if answers is not none: %}
+      <h4>Answers:</h4>
+      <table class="table table-responsive">
+        <tbody>
+          {% for data in answers['hits']['hits']: %}
+          <tr>
+            <td class="count-cell">
+              <div class="mini-count">{{data['_source']['upvotes'] - data['_source']['downvotes']}}<br />Votes</div>
+            </td>
+            <td>
+              <a href="{{url_for('main.view_question', q_id=data['_source']['q_id'])}}">{{data['_source']['ans']}}</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{%include '/footer.html'%}

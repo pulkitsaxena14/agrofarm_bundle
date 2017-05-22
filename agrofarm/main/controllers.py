@@ -1,8 +1,12 @@
+from __future__ import unicode_literals
 from flask import Blueprint, render_template, flash, session, jsonify
 from flask import current_app, redirect, request, url_for
 from agrofarm.data.models import Login, Answers, Questions, Users, q_votes, a_votes, db
 from sqlalchemy import exc, text
-import hashlib
+import hashlib, json
+from elasticsearch import Elasticsearch
+
+es = Elasticsearch()
 
 # specifies the template folder for the main blueprint
 main = Blueprint('main', __name__, template_folder='templates', static_folder='/static')
@@ -78,9 +82,11 @@ def add_new_user():
     try:
         db.session.add(add_user)
         db.session.commit()
-        result = Users.query.filter_by(email=email).first()
+        result = Users.query.order_by(Users.id.desc()).first()
+        es.index(index="agrofarm", doc_type="users", id=result.id, body={"id":result.id,"name":result.name,"email":result.email})
         session['u_id'] = result.id
         session['u_name'] = result.name
+        session['u_email'] = result.email
         response = {"status": 0, "status_msg": "Success!"}
         return jsonify(response), 201
     except exc.SQLAlchemyError as e:
@@ -114,12 +120,14 @@ def submit_question():
     title = request_data['title']
     text = request_data['text']
     u_id = session['u_id']
-    current_app.logger.info('Adding a new Question: U_Id: {0}, title:{1}, text:{2}'.format(u_id, title, text))
+    current_app.logger.info('Adding a new Question: U_Id: {0}, title: {1}, text: {2}'.format(u_id, title, text))
     add_question = Questions(title, text, u_id)
 
     try:
         db.session.add(add_question)
         db.session.commit()
+        esresult = Questions.query.order_by(Questions.id.desc()).first()
+        es.index(index="agrofarm", doc_type="questions", id=esresult.id, body={"id":esresult.id,"title":esresult.title,"details":esresult.details, "asked":esresult.asked, "u_id":esresult.u_id, "upvotes":esresult.upvotes, "downvotes":esresult.downvotes})
         response = {"status": 0, "status_msg": "Success!"}
         return jsonify(response), 201
     except exc.SQLAlchemyError as e:
@@ -132,11 +140,8 @@ def submit_question():
 def view_question(q_id):
     question = db.session.query(Questions, Users.name).filter_by(id=q_id).join(Users).first()
     answer_accepted = db.session.query(Answers, Users.name).filter_by(q_id=q_id,accepted='YES').join(Users).first()
-    all_answers = db.session.query(Answers, Users.name).filter_by(q_id=q_id,accepted='NO').order_by(Answers.upvotes, Answers.answered).join(Users).all()
-    for data in all_answers:
-        print data
-
-    return render_template('view_question.html', question=question, answer_accepted=answer_accepted, all_answers=all_answers) #
+    all_answers = db.session.query(Answers, Users.name).filter_by(q_id=q_id,accepted='NO').order_by(Answers.upvotes.desc(), Answers.answered.desc()).join(Users).all()
+    return render_template('view_question.html', question=question, answer_accepted=answer_accepted, all_answers=all_answers)
 
 
 @main.route('submit_answer/<int:q_id>', methods=["POST"])
@@ -155,12 +160,13 @@ def submit_answer(q_id):
         response = {"status": 1, "status_msg": "You have already answered this question!"}
         return jsonify(response), 200
     current_app.logger.info('Adding a new Answer to question ({0}: {1}: {2}).'.format(u_id, q_id, ans))
-    print("\n\nAdding...\n\n")
     add_answer = Answers(ans, q_id, u_id)
 
     try:
         db.session.add(add_answer)
         db.session.commit()
+        esresult = Answers.query.order_by(Answers.id.desc()).first()
+        es.index(index="agrofarm", doc_type="answers", id=esresult.id, body={"id":esresult.id,"ans":esresult.ans,"q_id":esresult.q_id, "answered":esresult.answered, "u_id":esresult.u_id, "upvotes":esresult.upvotes, "downvotes":esresult.downvotes, "accepted":esresult.accepted})
         response = {"status": 0, "status_msg": "Success!"}
         return jsonify(response), 201
     except exc.SQLAlchemyError as e:
@@ -197,8 +203,8 @@ def vote():
     entity_type = request_data['type']
     u_id = session['u_id']
     if entity_type == "QUESTION":
-        testing_question = Questions.query.filter_by(u_id=u_id, id=entity_id);
-        if testing_question:
+        testing_question = Questions.query.filter_by(u_id=u_id, id=entity_id).first();
+        if testing_question is not None:
             response = {"status": 1, "status_msg": "You cannot vote your own content!"}
             return jsonify(response), 200
 
@@ -211,8 +217,11 @@ def vote():
                 update_questions = Questions.query.filter_by(id=entity_id).first()
                 if vote == "UP":
                     update_questions.upvotes += 1
+                    es.update(index="agrofarm", doc_type="questions", id=entity_id, body={"script": "ctx._source.upvotes +=1"})
                 else:
                     update_questions.downvotes +=1
+                    es.update(index="agrofarm", doc_type="questions", id=entity_id, body={"script": "ctx._source.downvotes +=1"})
+
                 db.session.commit()
                 response = {"status": 0, "status_msg": "Success!"}
                 return jsonify(response), 201
@@ -229,8 +238,10 @@ def vote():
                     db.session.delete(result)
                     if vote == "DOWN":
                         update_questions.upvotes -= 1
+                        es.update(index="agrofarm", doc_type="questions", id=entity_id, body={"script": "ctx._source.upvotes -=1"})
                     else:
                         update_questions.downvotes -= 1
+                        es.update(index="agrofarm", doc_type="questions", id=entity_id, body={"script": "ctx._source.downvotes -=1"})
 
                     db.session.commit()
                     response = {"status": 0, "status_msg": "Success!"}
@@ -246,8 +257,11 @@ def vote():
                     db.session.delete(result)
                     if vote == "UP":
                         update_questions.upvotes -= 1
+                        es.update(index="agrofarm", doc_type="questions", id=entity_id, body={"script": "ctx._source.upvotes -=1"})
                     else:
                         update_questions.downvotes -= 1
+                        es.update(index="agrofarm", doc_type="questions", id=entity_id, body={"script": "ctx._source.downvotes -=1"})
+
                     db.session.commit()
                     response = {"status": 0, "status_msg": "Success!"}
                     return jsonify(response), 201
@@ -260,7 +274,6 @@ def vote():
     else:
         testing_answer = Answers.query.filter_by(u_id=u_id, id=entity_id).first();
         if testing_answer is not None:
-            print testing_answer
             response = {"status": 1, "status_msg": "You cannot vote your own content!"}
             return jsonify(response), 200
         result = a_votes.query.filter_by(u_id=u_id,a_id=entity_id).first()
@@ -274,8 +287,10 @@ def vote():
                 update_answers = Answers.query.filter_by(id=entity_id).first()
                 if vote == "UP":
                     update_answers.upvotes += 1
+                    es.update(index="agrofarm", doc_type="answers", id=entity_id, body={"script": "ctx._source.upvotes +=1"})
                 else:
                     update_answers.downvotes +=1
+                    es.update(index="agrofarm", doc_type="answers", id=entity_id, body={"script": "ctx._source.downvotes +=1"})
                 db.session.commit()
                 response = {"status": 0, "status_msg": "Success!"}
                 return jsonify(response), 201
@@ -292,8 +307,10 @@ def vote():
                     db.session.delete(result)
                     if vote == "DOWN":
                         update_answers.upvotes -= 1
+                        es.update(index="agrofarm", doc_type="answers", id=entity_id, body={"script": "ctx._source.upvotes -=1"})
                     else:
                         update_answers.downvotes -= 1
+                        es.update(index="agrofarm", doc_type="answers", id=entity_id, body={"script": "ctx._source.downvotes -=1"})
 
                     db.session.commit()
                     response = {"status": 0, "status_msg": "Success!"}
@@ -309,8 +326,11 @@ def vote():
                     db.session.delete(result)
                     if vote == "UP":
                         update_answers.upvotes -= 1
+                        es.update(index="agrofarm", doc_type="answers", id=entity_id, body={"script": "ctx._source.upvotes -=1"})
                     else:
                         update_answers.downvotes -= 1
+                        es.update(index="agrofarm", doc_type="answers", id=entity_id, body={"script": "ctx._source.downvotes -=1"})
+
                     db.session.commit()
                     response = {"status": 0, "status_msg": "Success!"}
                     return jsonify(response), 201
@@ -342,10 +362,12 @@ def accept():
         if check_accepted.accepted == "YES":
             current_app.logger.info('Removing Accepted (Answer_Id: {0}).'.format(a_id))
             check_accepted.accepted = "NO"
+            es.update(index="agrofarm", doc_type="answers", id=a_id, body={"doc":{"accepted": "NO"}})
 
         else:
             current_app.logger.info('Adding Accepted (Answer_Id: {0}).'.format(a_id))
             check_accepted.accepted = "YES"
+            es.update(index="agrofarm", doc_type="answers", id=a_id, body={"doc":{"accepted": "YES"}})
 
         db.session.commit()
         response = {"status": 0, "status_msg": "Success!"}
@@ -356,3 +378,18 @@ def accept():
         current_app.logger.error(e)
         response = {"status": 1, "status_msg": "Error:Status not changed!"}
         return jsonify(response), 500
+
+
+@main.route('search', methods=["POST"])
+def search():
+    query = request.form['search']
+    data = "*"+query+"*"
+    ques_data = []
+    questions = es.search(index="agrofarm", doc_type="questions", q=data)
+    if questions['hits']['total'] == 0:
+        questions = None
+    answers = es.search(index="agrofarm", doc_type="answers",q=data)
+    if answers['hits']['total'] == 0:
+        answers = None
+
+    return render_template('search.html', query=query, answers=answers, questions=questions)
