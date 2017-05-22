@@ -1,6 +1,3 @@
-#from bookshelf.data.models import db, Role, User
-#from flask_compress import Compress
-#from flask_security import Security, SQLAlchemyUserDatastore
 import os
 import logging
 
@@ -18,28 +15,19 @@ class BaseConfig(object):
     SQLALCHEMY_ECHO = True
 
 
-    #CACHE_TYPE = 'simple'
-    #COMPRESS_MIMETYPES = ['text/html', 'text/css', 'text/xml', \
-#'application/json', 'application/javascript']
-    #COMPRESS_LEVEL = 6
-    #COMPRESS_MIN_SIZE = 500
-    #SUPPORTED_LANGUAGES = {'bg': 'Bulgarian', 'en': 'English', 'fr': 'Francais'}
-    #BABEL_DEFAULT_LOCALE = 'en'
-    #BABEL_DEFAULT_TIMEZONE = 'UTC'
-
-
 class DevelopmentConfig(BaseConfig):
     DEBUG = True
     TESTING = False
     SQLALCHEMY_DATABASE_URI = 'postgres://agrofarmdb:agrofarmdb@localhost/testdb'
     SECRET_KEY = 'c13v-31op-m3n7-k3y'
-
+    JSON_AS_ASCII = False
 
 class TestingConfig(BaseConfig):
     DEBUG = False
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'postgres://agrofarmdb:agrofarmdb@localhost/testdb'
     SECRET_KEY = 'c13v-31op-m3n7-k3y'
+    JSON_AS_ASCII = False
 
 config = {
     "development": "agrofarm.config.DevelopmentConfig",
@@ -58,8 +46,3 @@ def configure_app(app):
     formatter = logging.Formatter(app.config['LOGGING_FORMAT'])
     handler.setFormatter(formatter)
     app.logger.addHandler(handler)
-    # Configure Security
-    #user_datastore = SQLAlchemyUserDatastore(db, User, Role)
-    #app.security = Security(app, user_datastore)
-    # Configure Compressing
-    #Compress(app)

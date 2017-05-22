@@ -9,6 +9,7 @@ from agrofarm.admin.controllers import admin
 from agrofarm.config import configure_app
 from agrofarm.data.models import db
 
+
 app = Flask(__name__,
             #instance_path=get_instance_folder_path(),
             instance_relative_config=True,
