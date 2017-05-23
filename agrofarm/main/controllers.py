@@ -35,6 +35,11 @@ def signIn():
         return redirect(url_for('main.profile'))
 
     request_data = request.get_json(force=True)
+
+    if not request_data['email'] or not request_data['password'] or request_data['email'].isspace() or request_data['password'].isspace():
+        response = {"status": 1, "status_msg": "Data Not Found"}
+        return jsonify(response), 200
+
     email = request_data['email']
     password = request_data['password']
     hash_object = hashlib.md5(password.encode())
@@ -71,6 +76,11 @@ def add_new_user():
         return redirect(url_for('main.profile'))
 
     request_data = request.get_json(force=True)
+
+    if not request_data['name'] or not request_data['email'] or not request_data['password'] or request_data['name'].isspace() or request_data['email'].isspace() or request_data['password'].isspace():
+        response = {"status": 1, "status_msg": "Data Not Found"}
+        return jsonify(response), 200
+
     name = request_data['name']
     email = request_data['email']
     password = request_data['password']
@@ -117,6 +127,11 @@ def submit_question():
         return redirect(url_for('main.account'))
 
     request_data = request.get_json(force=True)
+
+    if not request_data['title'] or not request_data['text'] or request_data['title'].isspace() or request_data['text'].isspace():
+        response = {"status": 1, "status_msg": "Data Not Found"}
+        return jsonify(response), 200
+
     title = request_data['title']
     text = request_data['text']
     u_id = session['u_id']
@@ -141,7 +156,16 @@ def view_question(q_id):
     question = db.session.query(Questions, Users.name).filter_by(id=q_id).join(Users).first()
     answer_accepted = db.session.query(Answers, Users.name).filter_by(q_id=q_id,accepted='YES').join(Users).first()
     all_answers = db.session.query(Answers, Users.name).filter_by(q_id=q_id,accepted='NO').order_by(Answers.upvotes.desc(), Answers.answered.desc()).join(Users).all()
-    return render_template('view_question.html', question=question, answer_accepted=answer_accepted, all_answers=all_answers)
+
+    if not all_answers and not answer_accepted:
+        print "Fetching Suggestions...\n\n\n"
+        ques_suggestions = es.search(index="agrofarm", doc_type="questions", q=question[0].title, size=5)
+        ans_suggestions = es.search(index="agrofarm", doc_type="answers", q=question[0].title, size=5)
+    else:
+        ques_suggestions = None
+        ans_suggestions = None
+
+    return render_template('view_question.html', question=question, answer_accepted=answer_accepted, all_answers=all_answers, ques_suggestions=ques_suggestions, ans_suggestions=ans_suggestions)
 
 
 @main.route('submit_answer/<int:q_id>', methods=["POST"])
@@ -153,6 +177,10 @@ def submit_answer(q_id):
         return jsonify(response), 200
 
     request_data = request.get_json(force=True)
+    if not request_data['ans'] or request_data['ans'].isspace():
+        response = {"status": 1, "status_msg": "Data Not Found"}
+        return jsonify(response), 200
+
     ans = request_data['ans']
     u_id = session['u_id']
     user_answered = Answers.query.filter_by(u_id=u_id, q_id=q_id).first()
@@ -198,6 +226,11 @@ def vote():
         return jsonify(response), 200
 
     request_data = request.get_json(force=True)
+
+    if not request_data['vote'] or not request_data['id'] or not request_data['type'] or request_data['vote'].isspace() or request_data['id'].isspace() or request_data['type'].isspace():
+        response = {"status": 1, "status_msg": "Data Not Found"}
+        return jsonify(response), 200
+
     vote = request_data['vote']
     entity_id = request_data['id']
     entity_type = request_data['type']
@@ -347,6 +380,11 @@ def accept():
         return jsonify(response), 200
 
     request_data = request.get_json(force=True)
+
+    if not request_data['a_id'] or not request_data['q_id'] or request_data['a_id'].isspace() or request_data['q_id'].isspace():
+        response = {"status": 1, "status_msg": "Data Not Found"}
+        return jsonify(response), 200
+
     a_id = request_data['a_id']
     q_id = request_data['q_id']
 
@@ -383,6 +421,12 @@ def accept():
 @main.route('search', methods=["POST"])
 def search():
     query = request.form['search']
+
+    if not query or query.isspace():
+        questions = None
+        answers = None
+        return render_template('search.html', query=query, answers=answers, questions=questions)
+
     data = "*"+query+"*"
     ques_data = []
     questions = es.search(index="agrofarm", doc_type="questions", q=data)

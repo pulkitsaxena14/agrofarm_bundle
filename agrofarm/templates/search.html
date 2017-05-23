@@ -21,7 +21,7 @@ $(document).ready(function() {
               <div class="mini-count">{{data['_source']['upvotes'] - data['_source']['downvotes']}}<br />Votes</div>
             </td>
             <td>
-              <a href="{{url_for('main.view_question', q_id=data['_source']['id'])}}">{{data['_source']['title']}}</a>
+              <a href="{{url_for('main.view_question', q_id=data['_source']['id'])}}">{{data['_source']['title']|truncate(300, True)}}</a>
             </td>
           </tr>
           {% endfor %}
@@ -38,7 +38,7 @@ $(document).ready(function() {
               <div class="mini-count">{{data['_source']['upvotes'] - data['_source']['downvotes']}}<br />Votes</div>
             </td>
             <td>
-              <a href="{{url_for('main.view_question', q_id=data['_source']['q_id'])}}">{{data['_source']['ans']}}</a>
+              <a href="{{url_for('main.view_question', q_id=data['_source']['q_id'])}}">{{data['_source']['ans']|truncate(300, True)}}</a>
             </td>
           </tr>
           {% endfor %}

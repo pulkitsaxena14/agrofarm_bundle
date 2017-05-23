@@ -15,7 +15,7 @@ User Id: {{ session['u_id'] }}<br />Email: {{ session['u_email'] }}
                   <div class="mini-count">{{data.upvotes - data.downvotes}}</div>
                 </td>
                 <td>
-                  <a href="{{url_for('main.view_question', q_id=data.id)}}">{{data.title}}</a>
+                  <a href="{{url_for('main.view_question', q_id=data.id)}}">{{data.title|truncate(200, True)}}</a>
                 </td>
               </tr>
       {% endfor %}
@@ -33,7 +33,7 @@ User Id: {{ session['u_id'] }}<br />Email: {{ session['u_email'] }}
               <div class="mini-count">{{data[0].upvotes - data[0].downvotes}}</div>
             </td>
             <td>
-              <a href="{{url_for('main.view_question', q_id=data[0].q_id)}}">{{data[1]}}</a>
+              <a href="{{url_for('main.view_question', q_id=data[0].q_id)}}">{{data[1]|truncate(200, True)}}</a>
             </td>
           </tr>
           {% endfor %}

@@ -28,6 +28,11 @@
    //SignIn AJAX Call Method
    $(document).ready(function(){
      $('#question_form').submit(function(e){
+       if(!$('#question-form-title').val() || !$('#question-form-text').val())
+       {
+         alert("Data Required!")
+         return false;
+       }
        $.ajax({
          data: JSON.stringify({"title": $('#question-form-title').val(), "text": $('#question-form-text').val()}),
          type: 'POST',

@@ -80,6 +80,11 @@
    //SignIn AJAX Call Method
    $(document).ready(function(){
      $('#login_form').submit(function(e){
+       if(!$('#login-form-email').val() || !$('#login-form-password').val())
+       {
+         alert("Values Required!")
+         return false;
+       }
        $.ajax({
          data: JSON.stringify({"email": $('#login-form-email').val(), "password": $('#login-form-password').val()}),
          type: 'POST',
@@ -101,6 +106,11 @@
    //SignUP AJAX Call Method
    $(document).ready(function(){
      $('#signup_form').submit(function(e){
+       if(!$('#signup-form-email-address').val() || !$('#signup-form-password').val() || !$('#ignup-form-confirm-password').val() || !$('#signup-form-name').val())
+       {
+         alert("Values Required!")
+         return false;
+       }
        $.ajax({
          data: JSON.stringify({"email": $('#signup-form-email-address').val(), "password": $('#signup-form-password').val(), "name": $('#signup-form-name').val()}),
          type: 'POST',

@@ -1,7 +1,7 @@
 {% include '/header.html' %}
 <script>
   var flag = 0;
-  {% if answer_accepted is not none: %}
+  {% if answer_accepted: %}
   {% if answer_accepted[0].u_id == session['u_id']: %}
   flag = 1;
   {% endif %}
@@ -23,7 +23,7 @@
   }
 </script>
 <script>
-{% if 'u_id' not in session or question[0].u_id != session['u_id'] or answer_accepted is not none: %}
+{% if 'u_id' not in session or question[0].u_id != session['u_id'] or answer_accepted: %}
   $(document).ready(function() {
     $("[id=accept]").hide();
   });
@@ -44,9 +44,8 @@
                   <a class="vote" title="This question is unclear or not useful" id="vote_down" data-vote-down="DOWN" data-type-down="QUESTION" data-id-down="{{question[0].id}}"><span class="glyphicon glyphicon-menu-down"></span></a>
                 </td>
                 <td class="data-cell">
-                  {#{question[0].details}#}
                   {% for line in question[0].details.splitlines() %}
-                  {{line}}<br>
+                  {{line}}<br />
                   {% endfor %}
                   <table>
                     <tbody>
@@ -65,7 +64,48 @@
           </table>
           {% endblock %}
           <hr />
-
+          <div class="row">
+          {% if ques_suggestions and ques_suggestions['hits']['total'] != 0: %}
+            <div class="col-sm-6">
+              <h4>Suggested Questions:</h4>
+              <table class="table table-responsive">
+                <tbody>
+                  {% for data in ques_suggestions['hits']['hits']: %}
+                  {% if not loop.first: %}
+                  <tr>
+                    <td class="count-cell">
+                      <div class="mini-count">{{data['_source']['upvotes'] - data['_source']['downvotes']}}<br />Votes</div>
+                    </td>
+                    <td>
+                      <a href="{{url_for('main.view_question', q_id=data['_source']['id'])}}">{{data['_source']['title']}}</a>
+                    </td>
+                  </tr>
+                  {% endif %}
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% endif %}
+            {% if ans_suggestions and ans_suggestions['hits']['total'] != 0: %}
+            <div class="col-sm-6">
+              <h4>Suggested Answers:</h4>
+              <table class="table table-responsive">
+                <tbody>
+                  {% for data in ans_suggestions['hits']['hits']: %}
+                  <tr>
+                    <td class="count-cell">
+                      <div class="mini-count">{{data['_source']['upvotes'] - data['_source']['downvotes']}}<br />Votes</div>
+                    </td>
+                    <td>
+                      <a href="{{url_for('main.view_question', q_id=data['_source']['q_id'])}}">{{data['_source']['ans']|truncate(200, True)}}</a>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% endif %}
+          </div>
           <legend>Answers: </legend>
           <div id="answer_me" name="answer_me">
             <div class="col-sm-12">
@@ -83,7 +123,7 @@
            </div>
 
           {% block ACCEPTED_ANSWER %}
-          {% if answer_accepted is not none: %}
+          {% if answer_accepted: %}
               <table>
                 <tbody>
                   <tr>
@@ -94,9 +134,8 @@
                       <a class="vote accepted" title="This answer is the most useful one" id="accepted" data-id = "{{ answer_accepted[0].id }}"><span class="glyphicon glyphicon-ok"></span></a>
                     </td>
                     <td class="data-cell">
-                      {{answer_accepted[0].ans}}
                       {% for line in answer_accepted[0].ans.splitlines() %}
-                      {{line}}<br>
+                      {{line}}<br />
                       {% endfor %}
                       <table>
                         <tbody>
@@ -130,7 +169,7 @@
                     <td class="data-cell">
                       {#{data[0].ans}#}
                       {% for line in data[0].ans.splitlines() %}
-                      {{line}}<br>
+                      {{line}}<br />
                       {% endfor %}
                       <table>
                         <tbody>
@@ -198,6 +237,11 @@ $(document).ready(function(){
 <script>
 $(document).ready(function(){
   $('#answer_form').submit(function(e){
+    if(!$('#answer-form-text').val())
+    {
+      alert("Data Required!")
+      return false;
+    }
     $.ajax({
       data: JSON.stringify({"ans": $('#answer-form-text').val()}),
       type: 'POST',
