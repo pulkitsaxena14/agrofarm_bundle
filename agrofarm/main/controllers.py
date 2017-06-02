@@ -427,7 +427,7 @@ def search():
         answers = None
         return render_template('search.html', query=query, answers=answers, questions=questions)
 
-    data = "*"+query+"*"
+    data = query
     ques_data = []
     questions = es.search(index="agrofarm", doc_type="questions", q=data)
     if questions['hits']['total'] == 0:
