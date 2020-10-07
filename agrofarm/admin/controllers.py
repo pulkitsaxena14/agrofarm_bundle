@@ -1,9 +1,8 @@
 from flask import Blueprint
 
+admin = Blueprint("admin", __name__)
 
-admin = Blueprint('admin', __name__)
 
-
-@admin.route('/')
+@admin.route("/")
 def index():
     return "Admin"
