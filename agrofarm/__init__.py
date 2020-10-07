@@ -1,25 +1,21 @@
 from flask import Flask, render_template, request
 
 from agrofarm.admin.controllers import admin
-
-# from agrofarm.cache import cache
+#from agrofarm.cache import cache
 from agrofarm.config import configure_app
 from agrofarm.data.models import db
-
-# from flask import abort, Flask, g, render_template, request
-# from flask_babel import Babel
-# from flask_security import current_user
-# from bookshelf.utils import get_instance_folder_path
+#from flask import abort, Flask, g, render_template, request
+#from flask_babel import Babel
+#from flask_security import current_user
+#from bookshelf.utils import get_instance_folder_path
 from agrofarm.main.controllers import main
 
-app = Flask(
-    __name__,
-    # instance_path=get_instance_folder_path(),
-    instance_relative_config=True,
-    template_folder="templates",
-)
+app = Flask(__name__,
+            # instance_path=get_instance_folder_path(),
+            instance_relative_config=True,
+            template_folder='templates')
 
-# babel = Babel(app)
+#babel = Babel(app)
 configure_app(app)
 # cache.init_app(app)
 db.init_app(app)
@@ -55,33 +51,32 @@ db.init_app(app)
 
 @app.errorhandler(400)
 def bad_requert_error(error):
-    app.logger.error("Bad Request: %s", (request.path, error))
-    return render_template("400.html"), 400
+    app.logger.error('Bad Request: %s', (request.path, error))
+    return render_template('400.html'), 400
 
 
 @app.errorhandler(404)
 def page_not_found(error):
-    app.logger.error("Page not found: %s", (request.path, error))
-    return render_template("404.html"), 404
+    app.logger.error('Page not found: %s', (request.path, error))
+    return render_template('404.html'), 404
 
 
 @app.errorhandler(405)
 def method_not_allowed(error):
-    app.logger.error("Method Not Allowed: %s", (request.path, error))
-    return render_template("405.html"), 405
+    app.logger.error('Method Not Allowed: %s', (request.path, error))
+    return render_template('405.html'), 405
 
 
 @app.errorhandler(500)
 def internal_server_error(error):
-    app.logger.error("Server Error: %s", (error))
-    return render_template("500.html"), 500
+    app.logger.error('Server Error: %s', (error))
+    return render_template('500.html'), 500
 
 
 @app.errorhandler(Exception)
 def unhandled_exception(error):
-    app.logger.error("Unhandled Exception: %s", (error))
-    return render_template("500.html"), 500
-
+    app.logger.error('Unhandled Exception: %s', (error))
+    return render_template('500.html'), 500
 
 # @app.context_processor
 # def inject_data():
@@ -95,7 +90,7 @@ def unhandled_exception(error):
 #    return render_template('home.html')
 
 
-app.register_blueprint(main, url_prefix="/")
-# app.register_blueprint(main, url_prefix='/<lang_code>/main')
-app.register_blueprint(admin, url_prefix="/admin")
-# app.register_blueprint(admin, url_prefix='/<lang_code>/admin')
+app.register_blueprint(main, url_prefix='/')
+#app.register_blueprint(main, url_prefix='/<lang_code>/main')
+app.register_blueprint(admin, url_prefix='/admin')
+#app.register_blueprint(admin, url_prefix='/<lang_code>/admin')
