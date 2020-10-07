@@ -15,6 +15,7 @@ class Login(db.Model):
     def __repr__(self):
         return '<Id: %r, User: %r, Email: %r>' % (self.id, self.name, self.email)
 
+
 class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20), nullable=False)
@@ -29,11 +30,13 @@ class Users(db.Model):
     def __repr__(self):
         return '<Id: %r, Name: %r, Email: %r, Password: %r>' % (self.id, self.name, self.email, self.password)
 
+
 class Questions(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(500), nullable=False)
     details = db.Column(db.String, nullable=False)
-    asked = db.Column(db.DateTime, server_default=db.func.now(), nullable=False)
+    asked = db.Column(
+        db.DateTime, server_default=db.func.now(), nullable=False)
     u_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     upvotes = db.Column(db.Integer, default=0)
     downvotes = db.Column(db.Integer, default=0)
@@ -52,7 +55,8 @@ class Questions(db.Model):
 class Answers(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     ans = db.Column(db.String, nullable=False)
-    answered = db.Column(db.DateTime, server_default=db.func.now(), nullable=False)
+    answered = db.Column(
+        db.DateTime, server_default=db.func.now(), nullable=False)
     q_id = db.Column(db.Integer, db.ForeignKey("questions.id"), nullable=False)
     u_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     upvotes = db.Column(db.Integer, default=0)
@@ -85,6 +89,7 @@ class q_votes(db.Model):
 
     def __repr__(self):
         return '<Id: %r, User_ID: %r, Question_Id: %r, Vote: %r' % (self.id, self.u_id, self.q_id, self.vote)
+
 
 class a_votes(db.Model):
     id = db.Column(db.Integer, primary_key=True)
